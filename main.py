@@ -24,6 +24,12 @@ player_speed = 5
 ball_friction = 0.98
 ball_max_speed = 10
 
+# Create stadium walls with textures
+stadium_walls = [
+    Entity(model='quad', scale=(30, 10), position=(0, 5, 15), texture='brick', color=color.white, rotation_y=180),  # Front wall
+    Entity(model='quad', scale=(40, 10), position=(-15, 5, 0), texture='brick', color=color.white, rotation_y=90),  # Left wall
+    Entity(model='quad', scale=(40, 10), position=(15, 5, 0), texture='brick', color=color.white, rotation_y=-90)   # Right wall
+]
 
 def update():
     global ball_speed
@@ -52,16 +58,14 @@ def update():
     if player1.intersects(ball).hit:
         print("Player 1 hit the ball")
         direction = (ball.position - player1.position).normalized()
-        print(f"Direction: {direction}")
         ball_speed = direction * ball_max_speed
-        print(f"Ball speed: {ball_speed}")
+        print(f"Player 1 hits ball in direction: {direction}, Ball speed: {ball_speed}")
 
     if player2.intersects(ball).hit:
         print("Player 2 hit the ball")
         direction = (ball.position - player2.position).normalized()
-        print(f"Direction: {direction}")
         ball_speed = direction * ball_max_speed
-        print(f"Ball speed: {ball_speed}")
+        print(f"Player 2 hits ball in direction: {direction}, Ball speed: {ball_speed}")
 
     # Apply ball speed and friction
     ball.position += ball_speed * time.dt
@@ -76,6 +80,12 @@ def update():
         print("Player 1 scores!")
         ball.position = (0, 0.26, 0)
         ball_speed = Vec3(0, 0, 0)
+
+    # Debugging output to check positions and ball speed
+    print(f"Player 1 Position: {player1.position}")
+    print(f"Player 2 Position: {player2.position}")
+    print(f"Ball Position: {ball.position}")
+    print(f"Ball Speed: {ball_speed}")
 
 # Camera setup
 camera.position = (0, 15, -30)
