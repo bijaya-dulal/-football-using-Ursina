@@ -24,13 +24,6 @@ player_speed = 5
 ball_friction = 0.98
 ball_max_speed = 4
 
-# Create stadium walls with textures
-stadium_walls = [
-    Entity(model='quad', scale=(30, 10), position=(0, 5, 25), texture='brick', color=color.white, rotation_y=180),  # Front wall
-    Entity(model='quad', scale=(40, 10), position=(-15, 5, 0), texture='brick', color=color.white, rotation_y=90),  # Left wall
-    Entity(model='quad', scale=(40, 10), position=(15, 5, 0), texture='brick', color=color.white, rotation_y=-90)   # Right wall
-]
-
 def update():
     global ball_speed
 
@@ -59,19 +52,21 @@ def update():
         print("Player 1 hit the ball")
         direction = (ball.position - player1.position).normalized()
         ball_speed = direction * ball_max_speed
-        ball.color = color.red  # Change ball color to red when hit by player 1
         print(f"Player 1 hits ball in direction: {direction}, Ball speed: {ball_speed}")
 
     if player2.intersects(ball).hit:
         print("Player 2 hit the ball")
         direction = (ball.position - player2.position).normalized()
         ball_speed = direction * ball_max_speed
-        ball.color = color.blue  # Change ball color to blue when hit by player 2
         print(f"Player 2 hits ball in direction: {direction}, Ball speed: {ball_speed}")
 
     # Apply ball speed and friction
     ball.position += ball_speed * time.dt
     ball_speed *= ball_friction
+
+    # Restrict the ball from going below the ground
+    if ball.position.y < 0.26:
+        ball.position = Vec3(ball.position.x, 0.26, ball.position.z)
 
     # Check if the ball is in goal1 or goal2
     if ball.intersects(goal1).hit:
@@ -86,7 +81,6 @@ def update():
         ball_speed = Vec3(0, 0, 0)
         ball.color = color.white  # Reset ball color after goal
 
-    
 # Camera setup
 camera.position = (0, 15, -30)
 camera.rotation_x = 28
