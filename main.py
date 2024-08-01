@@ -6,22 +6,38 @@ app = Ursina()
 # Setup the playing field
 ground = Entity(model='plane', scale=(15, 0.1, 20), color=color.rgb(34, 255, 34))
 
+# Boundary lines
+boundary_width = 0.1
+boundary_thickness = 0.1
+
+# Bottom boundary
+Entity(model='cube', scale=(15 + 1.9 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05, -10 - boundary_width / 2), color=color.white, collider=None)
+# Top boundary
+Entity(model='cube', scale=(15 + 1.9 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05, 10 + boundary_width / 2), color=color.white, collider=None)
+# Left boundary
+Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(-7.5+ boundary_thickness/2, 0.05, 0), color=color.white, collider=None)
+# Right boundary
+Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(7.5 + boundary_thickness /2, 0.05, 0), color=color.white, collider=None)
+#ball spot
+ball_spot = Entity(model='sphere', scale=(1,0, 1.5), position=(0, 0 , 0), color=color.white )
+# Center line (red-white striped line)
+Entity(model='cube', scale=(15 + 2 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05,0), color=color.white, collider=None)
 # Setup for goal post
-goal1 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, -9.5), color=color.rgba(255, 0, 0, 100), collider='box')
-goal2 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, 9.5), color=color.rgba(0, 0, 255, 100), collider='box')
+goal1 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, -9.85), color=color.rgba(255, 0, 0, 100), collider='box')
+goal2 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, 9.85), color=color.rgba(0, 0, 255, 100), collider='box')
 
 # Setup the players
-player1 = Entity(model='cube', scale=(1, 1, 1), position=(-2, 1, -1), color=color.rgba(255, 0, 0, 100), collider='box')
-player2 = Entity(model='cube', scale=(1, 1, 1), position=(2, 1, 2), color=color.rgba(0, 0, 255, 100), collider='box')
+player1 = Entity(model='cube', scale=(1, 1, 1), position=(-2, 1, -4), color=color.rgba(255, 0, 0, 100), collider='box')
+player2 = Entity(model='cube', scale=(1, 1, 1), position=(2, 1, 4), color=color.rgba(0, 0, 255, 100), collider='box')
 
 # Setup the football
-ball = Entity(model='sphere', scale=(0.5, 0.5, 0.5), position=(0, 0.26, 0), color=color.white, collider='sphere')
+ball = Entity(model='sphere', scale=(0.5, 0.5, 0.5), position=(0, 0.26, 0), color=color.yellow, collider='sphere')
 ball_speed = Vec3(0, 0, 0)
 
 # Add stands
-stand2 = Entity(model='cube', scale=(16, 3, 2), position=(0, 2.5, 11), color=color.gray) # back
-stand3 = Entity(model='cube', scale=(2, 3, 20), position=(-9, 2.5, 0), color=color.gray) # left
-stand4 = Entity(model='cube', scale=(2, 3, 20), position=(9, 2.5, 0), color=color.gray) # right
+stand2 = Entity(model='cube', scale=(16, 3, 2), position=(0, 2.5, 11), color=color.gray)  # back
+stand3 = Entity(model='cube', scale=(2, 3, 20), position=(-9, 2.5, 0), color=color.gray)  # left
+stand4 = Entity(model='cube', scale=(2, 3, 20), position=(9, 2.5, 0), color=color.gray)  # right
 
 # Player speed
 player_speed = 2
