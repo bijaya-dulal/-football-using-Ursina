@@ -1,5 +1,14 @@
 from ursina import *
 import time
+import pygame
+
+# Initialize Pygame mixer
+pygame.mixer.init()
+pygame.mixer.music.load('game.mp3')  # Load the background music
+pygame.mixer.music.play(-1)  # Play the background music in a loop
+
+# Load the whistle sound
+whistle_sound = pygame.mixer.Sound('whistle.mp3')  # Load the whistle sound
 
 app = Ursina()
 
@@ -15,13 +24,13 @@ Entity(model='cube', scale=(15 + 1.9 * boundary_width, boundary_thickness, bound
 # Top boundary
 Entity(model='cube', scale=(15 + 1.9 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05, 10 + boundary_width / 2), color=color.white, collider=None)
 # Left boundary
-Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(-7.5+ boundary_thickness/2, 0.05, 0), color=color.white, collider=None)
+Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(-7.5 + boundary_thickness / 2, 0.05, 0), color=color.white, collider=None)
 # Right boundary
-Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(7.5 + boundary_thickness /2, 0.05, 0), color=color.white, collider=None)
-#ball spot
-ball_spot = Entity(model='sphere', scale=(1,0, 1.5), position=(0, 0 , 0), color=color.white )
+Entity(model='cube', scale=(boundary_thickness, boundary_width,20), position=(7.5 + boundary_thickness / 2, 0.05, 0), color=color.white, collider=None)
+# Ball spot
+ball_spot = Entity(model='sphere', scale=(1, 0, 1.5), position=(0, 0, 0), color=color.white)
 # Center line (red-white striped line)
-Entity(model='cube', scale=(15 + 2 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05,0), color=color.white, collider=None)
+Entity(model='cube', scale=(15 + 2 * boundary_width, boundary_thickness, boundary_width), position=(0, 0.05, 0), color=color.white, collider=None)
 # Setup for goal post
 goal1 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, -9.85), color=color.rgba(255, 0, 0, 100), collider='box')
 goal2 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, 9.85), color=color.rgba(0, 0, 255, 100), collider='box')
@@ -65,6 +74,13 @@ countdown_text = Text(text="", position=(0, 0), scale=5, color=color.red)
 # Countdown flag
 is_countdown = True
 
+# Flags for whistle events
+whistle_played = {
+    'goal': False,
+    'out_of_bounds': False,
+    'countdown_end': False
+}
+
 def reset_ball():
     global ball_speed
     ball.position = Vec3(0, 0.26, 0)
@@ -81,6 +97,7 @@ def end_game():
     else:
         winner_text = Text(text="It's a Draw!", position=(0, 0), scale=3, color=color.yellow)
     application.pause()  # Stops the game
+    pygame.mixer.music.stop()  # Stop the background music when game ends
 
 def start_countdown():
     global is_countdown
@@ -96,11 +113,17 @@ def update_countdown(value):
         countdown_text.text = str(value)
     else:
         countdown_text.text = ""
+        whistle_played['countdown_end'] = True  # Mark countdown end
+        play_whistle()
 
 def start_game():
     global is_countdown
     is_countdown = False
     countdown_text.text = ""
+
+def play_whistle():
+    # Play the whistle sound
+    pygame.mixer.Sound.play(whistle_sound)
 
 def update():
     global ball_speed, player1_score, player2_score
@@ -167,6 +190,9 @@ def update():
     # Restrict the ball from going below the ground
     if ball.position.y < 0.26:
         ball.position = Vec3(ball.position.x, 0.26, ball.position.z)
+        if not whistle_played['out_of_bounds']:  # Check if whistle has been played for out of bounds
+            play_whistle()
+            whistle_played['out_of_bounds'] = True  # Mark whistle as played for out of bounds
 
     # Check if the ball is in goal1 or goal2
     if ball.intersects(goal1).hit:
@@ -177,6 +203,9 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
+        if not whistle_played['goal']:  # Check if whistle has been played for goal
+            play_whistle()
+            whistle_played['goal'] = True  # Mark whistle as played for goal
         start_countdown()
 
     if ball.intersects(goal2).hit:
@@ -187,12 +216,18 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
+        if not whistle_played['goal']:  # Check if whistle has been played for goal
+            play_whistle()
+            whistle_played['goal'] = True  # Mark whistle as played for goal
         start_countdown()
 
     # Reset ball if it goes out of bounds
     if abs(ball.position.x) > 7.5 or abs(ball.position.z) > 10:
         print("Ball went out of bounds! Resetting...")
         reset_ball()
+        if not whistle_played['out_of_bounds']:  # Check if whistle has been played for out of bounds
+            play_whistle()
+            whistle_played['out_of_bounds'] = True  # Mark whistle as played for out of bounds
 
 # Camera setup
 camera.position = (0, 15, -30)
@@ -202,3 +237,6 @@ camera.rotation_x = 28
 start_countdown()
 
 app.run()
+
+# Stop the music when the application exits
+pygame.mixer.music.stop()
