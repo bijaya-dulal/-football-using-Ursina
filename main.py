@@ -38,21 +38,22 @@ scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-
 # Timer
 start_time = time.time()
 game_duration = 120  # 2 minutes
+timer_text = Text(text="Time: 2:00", position=(-0.85, 0.35), scale=1, color=color.white)
 
 def reset_ball():
     ball.position = Vec3(0, 0.26, 0)
     ball_speed = Vec3(0, 0, 0)
 
 def update_scoreboard():
-    scoreboard.text = f"P1 : {player1_score} - P2: {player2_score}"
+    scoreboard.text = f"P1: {player1_score} - P2: {player2_score}"
 
 def end_game():
     if player1_score > player2_score:
-        winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=3, color=color.yellow)
+        winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=1, color=color.yellow)
     elif player2_score > player1_score:
-        winner_text = Text(text="Player 2 Wins!", position=(0, 0), scale=3, color=color.yellow)
+        winner_text = Text(text="Player 2 Wins!", position=(0, 0), scale=1, color=color.yellow)
     else:
-        winner_text = Text(text="It's a Draw!", position=(0, 0), scale=3, color=color.yellow)
+        winner_text = Text(text="It's a Draw!", position=(0, 0), scale=1, color=color.yellow)
     application.pause()  # Stops the game
 
 def update():
@@ -60,6 +61,11 @@ def update():
 
     # Check if game duration is over
     elapsed_time = time.time() - start_time
+    remaining_time = max(0, game_duration - int(elapsed_time))
+    minutes = remaining_time // 60
+    seconds = remaining_time % 60
+    timer_text.text = f"Time: {minutes}:{seconds:02}"
+
     if elapsed_time >= game_duration:
         end_game()
         return
