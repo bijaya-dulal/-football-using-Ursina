@@ -38,7 +38,10 @@ scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-
 # Timer
 start_time = time.time()
 game_duration = 120  # 2 minutes
-timer_text = Text(text="Time: 2:00", position=(-0.85, 0.35), scale=1, color=color.white)
+timer_text = Text(text="Time: 2:00", position=(-0.85, 0.35), scale=2, color=color.white)
+
+# Countdown
+countdown_text = Text(text="", position=(0, 0), scale=5, color=color.red)
 
 def reset_ball():
     ball.position = Vec3(0, 0.26, 0)
@@ -49,12 +52,30 @@ def update_scoreboard():
 
 def end_game():
     if player1_score > player2_score:
-        winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=1, color=color.yellow)
+        winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=3, color=color.yellow)
     elif player2_score > player1_score:
-        winner_text = Text(text="Player 2 Wins!", position=(0, 0), scale=1, color=color.yellow)
+        winner_text = Text(text="Player 2 Wins!", position=(0, 0), scale=3, color=color.yellow)
     else:
-        winner_text = Text(text="It's a Draw!", position=(0, 0), scale=1, color=color.yellow)
+        winner_text = Text(text="It's a Draw!", position=(0, 0), scale=3, color=color.yellow)
     application.pause()  # Stops the game
+
+def start_countdown():
+    countdown_text.text = "3"
+    invoke(update_countdown, 2, delay=1)
+    invoke(update_countdown, 1, delay=2)
+    invoke(update_countdown, 0, delay=3)
+    invoke(start_game, delay=3)
+
+def update_countdown(value):
+    if value > 0:
+        countdown_text.text = str(value)
+    else:
+        countdown_text.text = ""
+
+def start_game():
+    global start_time
+    start_time = time.time()
+    application.resume()
 
 def update():
     global ball_speed, player1_score, player2_score
@@ -126,6 +147,8 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
+        application.pause()
+        start_countdown()
 
     if ball.intersects(goal2).hit:
         print("Player 1 scores!")
@@ -135,6 +158,8 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
+        application.pause()
+        start_countdown()
 
     # Reset ball if it goes out of bounds
     if abs(ball.position.x) > 7.5 or abs(ball.position.z) > 10:
@@ -144,5 +169,8 @@ def update():
 # Camera setup
 camera.position = (0, 15, -30)
 camera.rotation_x = 28
+
+# Start the initial countdown
+start_countdown()
 
 app.run()
