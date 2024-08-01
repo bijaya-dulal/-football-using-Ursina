@@ -3,11 +3,7 @@ from ursina import *
 app = Ursina()
 
 # Setup the playing field
-#ground = Entity(model='plane', scale=(15, 0.1, 20), texture='white_cube', texture_scale=(10, 20), color=color.green)
-
 ground = Entity(model='plane', scale=(15, 0.1, 20), color=color.rgb(34, 255, 34))
-
-
 
 # Setup for goal post
 goal1 = Entity(model='cube', scale=(3, 2, 0.5), position=(0, 1, -9.5), color=color.rgba(255, 0, 0, 100), collider='box')
@@ -22,10 +18,9 @@ ball = Entity(model='sphere', scale=(0.5, 0.5, 0.5), position=(0, 0.26, 0), colo
 ball_speed = Vec3(0, 0, 0)
 
 # Add stands
-#stand1 = Entity(model='cube', scale=(15, 3, 2), position=(0, 2.5, -11), color=color.gray)
-stand2 = Entity(model='cube', scale=(15, 3, 2), position=(0, 2.5, 11), color=color.gray)
-stand3 = Entity(model='cube', scale=(2, 3, 20), position=(-8.5, 2.5, 0), color=color.gray)
-stand4 = Entity(model='cube', scale=(2, 3, 20), position=(8.5, 2.5, 0), color=color.gray)
+stand2 = Entity(model='cube', scale=(16, 3, 2), position=(0, 2.5, 11), color=color.gray) # back
+stand3 = Entity(model='cube', scale=(2, 3, 20), position=(-9, 2.5, 0), color=color.gray) # left
+stand4 = Entity(model='cube', scale=(2, 3, 20), position=(9, 2.5, 0), color=color.gray) # right
 
 # Player speed
 player_speed = 2
@@ -34,8 +29,20 @@ player_speed = 2
 ball_friction = 0.98
 ball_max_speed = 4
 
+# Scoreboard
+player1_score = 0
+player2_score = 0
+scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-0.85, 0.45), scale=2, color=color.white)
+
+def reset_ball():
+    ball.position = Vec3(0, 0.26, 0)
+    ball_speed = Vec3(0, 0, 0)
+
+def update_scoreboard():
+    scoreboard.text = f"P1 : {player1_score} - P2: {player2_score}"
+
 def update():
-    global ball_speed
+    global ball_speed, player1_score, player2_score
 
     # Player 1 controls (WASD)
     if held_keys['w']:
@@ -56,6 +63,12 @@ def update():
         player2.x -= time.dt * player_speed
     if held_keys['right arrow']:
         player2.x += time.dt * player_speed
+
+    # Restrict players to stay within the stands
+    player1.x = clamp(player1.x, -8,8)
+    player1.z = clamp(player1.z, -10, 10)
+    player2.x = clamp(player2.x, -8,8)
+    player2.z = clamp(player2.z, -10, 10)
 
     # Check collision between players and ball
     if player1.intersects(ball).hit:
@@ -81,22 +94,28 @@ def update():
     # Check if the ball is in goal1 or goal2
     if ball.intersects(goal1).hit:
         print("Player 2 scores!")
-        ball.position = Vec3(0, 0.26, 0)
+        player2_score += 1
+        update_scoreboard()
+        reset_ball()
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
-        ball_speed = Vec3(0, 0, 0)
         ball.color = color.white  # Reset ball color after goal
 
     if ball.intersects(goal2).hit:
         print("Player 1 scores!")
-        ball.position = Vec3(0, 0.26, 0)
+        player1_score += 1
+        update_scoreboard()
+        reset_ball()
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
-        ball_speed = Vec3(0, 0, 0)
         ball.color = color.white  # Reset ball color after goal
 
-# Camera setup
+    # Reset ball if it goes out of bounds
+    if abs(ball.position.x) > 7.5 or abs(ball.position.z) > 10:
+        print("Ball went out of bounds! Resetting...")
+        reset_ball()
 
+# Camera setup
 camera.position = (0, 15, -30)
 camera.rotation_x = 28
 
