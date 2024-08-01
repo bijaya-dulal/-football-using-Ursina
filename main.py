@@ -1,4 +1,5 @@
 from ursina import *
+import time
 
 app = Ursina()
 
@@ -34,6 +35,10 @@ player1_score = 0
 player2_score = 0
 scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-0.85, 0.45), scale=2, color=color.white)
 
+# Timer
+start_time = time.time()
+game_duration = 120  # 2 minutes
+
 def reset_ball():
     ball.position = Vec3(0, 0.26, 0)
     ball_speed = Vec3(0, 0, 0)
@@ -41,8 +46,23 @@ def reset_ball():
 def update_scoreboard():
     scoreboard.text = f"P1 : {player1_score} - P2: {player2_score}"
 
+def end_game():
+    if player1_score > player2_score:
+        winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=3, color=color.yellow)
+    elif player2_score > player1_score:
+        winner_text = Text(text="Player 2 Wins!", position=(0, 0), scale=3, color=color.yellow)
+    else:
+        winner_text = Text(text="It's a Draw!", position=(0, 0), scale=3, color=color.yellow)
+    application.pause()  # Stops the game
+
 def update():
     global ball_speed, player1_score, player2_score
+
+    # Check if game duration is over
+    elapsed_time = time.time() - start_time
+    if elapsed_time >= game_duration:
+        end_game()
+        return
 
     # Player 1 controls (WASD)
     if held_keys['w']:
@@ -65,9 +85,9 @@ def update():
         player2.x += time.dt * player_speed
 
     # Restrict players to stay within the stands
-    player1.x = clamp(player1.x, -8,8)
+    player1.x = clamp(player1.x, -8, 8)
     player1.z = clamp(player1.z, -10, 10)
-    player2.x = clamp(player2.x, -8,8)
+    player2.x = clamp(player2.x, -8, 8)
     player2.z = clamp(player2.z, -10, 10)
 
     # Check collision between players and ball
