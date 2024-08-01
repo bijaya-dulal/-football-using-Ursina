@@ -33,17 +33,24 @@ ball_max_speed = 4
 # Scoreboard
 player1_score = 0
 player2_score = 0
-scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-0.85, 0.45), scale=2, color=color.white)
+scoreboard = Text(text=f"P1: {player1_score} - P2: {player2_score}", position=(-0.85, 0.45), scale=1, color=color.white)
 
 # Timer
 start_time = time.time()
 game_duration = 120  # 2 minutes
-timer_text = Text(text="Time: 2:00", position=(-0.85, 0.35), scale=2, color=color.white)
+timer_text = Text(text="Time: 2:00", position=(-0.85, 0.40), scale=1, color=color.white)
+
+# Score label
+score_label = Text(text="Score", position=(-0.85, 0.50), scale=1.5, color=color.yellow)
 
 # Countdown
 countdown_text = Text(text="", position=(0, 0), scale=5, color=color.red)
 
+# Countdown flag
+is_countdown = True
+
 def reset_ball():
+    global ball_speed
     ball.position = Vec3(0, 0.26, 0)
     ball_speed = Vec3(0, 0, 0)
 
@@ -60,6 +67,8 @@ def end_game():
     application.pause()  # Stops the game
 
 def start_countdown():
+    global is_countdown
+    is_countdown = True
     countdown_text.text = "3"
     invoke(update_countdown, 2, delay=1)
     invoke(update_countdown, 1, delay=2)
@@ -73,22 +82,27 @@ def update_countdown(value):
         countdown_text.text = ""
 
 def start_game():
-    global start_time
-    start_time = time.time()
-    application.resume()
+    global is_countdown
+    is_countdown = False
+    countdown_text.text = ""
 
 def update():
     global ball_speed, player1_score, player2_score
 
     # Check if game duration is over
-    elapsed_time = time.time() - start_time
-    remaining_time = max(0, game_duration - int(elapsed_time))
-    minutes = remaining_time // 60
-    seconds = remaining_time % 60
-    timer_text.text = f"Time: {minutes}:{seconds:02}"
+    if not is_countdown:
+        elapsed_time = time.time() - start_time
+        remaining_time = max(0, game_duration - int(elapsed_time))
+        minutes = remaining_time // 60
+        seconds = remaining_time % 60
+        timer_text.text = f"Time: {minutes}:{seconds:02}"
 
-    if elapsed_time >= game_duration:
-        end_game()
+        if remaining_time <= 0:
+            end_game()
+            return
+
+    if is_countdown:
+        # Restrict player and ball movements during countdown
         return
 
     # Player 1 controls (WASD)
@@ -113,9 +127,9 @@ def update():
 
     # Restrict players to stay within the stands
     player1.x = clamp(player1.x, -8, 8)
-    player1.z = clamp(player1.z, -10, 10)
+    player1.z = clamp(player1.z, -11, 11)
     player2.x = clamp(player2.x, -8, 8)
-    player2.z = clamp(player2.z, -10, 10)
+    player2.z = clamp(player2.z, -11, 11)
 
     # Check collision between players and ball
     if player1.intersects(ball).hit:
@@ -147,7 +161,6 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
-        application.pause()
         start_countdown()
 
     if ball.intersects(goal2).hit:
@@ -158,7 +171,6 @@ def update():
         player1.position = Vec3(-2, 1, 0)
         player2.position = Vec3(2, 1, 0)
         ball.color = color.white  # Reset ball color after goal
-        application.pause()
         start_countdown()
 
     # Reset ball if it goes out of bounds
