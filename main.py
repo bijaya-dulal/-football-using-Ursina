@@ -9,6 +9,11 @@ pygame.mixer.music.play(-1)  # Play the background music in a loop
 
 # Load the whistle sound
 whistle_sound = pygame.mixer.Sound('whistle.mp3')  # Load the whistle sound
+whistle_sound.set_volume(0.5) 
+goal_sound = pygame.mixer.Sound('goal.mp3')
+goal_sound.set_volume(1.0) 
+kick_sound = pygame.mixer.Sound('kick.mp3')
+
 
 app = Ursina()
 
@@ -40,7 +45,7 @@ player1 = Entity(model='cube', scale=(1, 1, 1), position=(-2, 1, -4), color=colo
 player2 = Entity(model='cube', scale=(1, 1, 1), position=(2, 1, 4), color=color.rgba(0, 0, 255, 100), collider='box')
 
 # Setup the football
-ball = Entity(model='sphere', scale=(0.5, 0.5, 0.5), position=(0, 0.26, 0), color=color.yellow, collider='sphere')
+ball = Entity(model='sphere', scale=(0.5, 0.5, 0.5), position=(0, 0.26, 0), color=color.black, collider='sphere')
 ball_speed = Vec3(0, 0, 0)
 
 # Add stands
@@ -90,6 +95,7 @@ def update_scoreboard():
     scoreboard.text = f"P1: {player1_score} - P2: {player2_score}"
 
 def end_game():
+
     if player1_score > player2_score:
         winner_text = Text(text="Player 1 Wins!", position=(0, 0), scale=3, color=color.yellow)
     elif player2_score > player1_score:
@@ -97,7 +103,7 @@ def end_game():
     else:
         winner_text = Text(text="It's a Draw!", position=(0, 0), scale=3, color=color.yellow)
     application.pause()  # Stops the game
-    pygame.mixer.music.stop()  # Stop the background music when game ends
+                        
 
 def start_countdown():
     global is_countdown
@@ -124,6 +130,14 @@ def start_game():
 def play_whistle():
     # Play the whistle sound
     pygame.mixer.Sound.play(whistle_sound)
+def say_goal():
+    # Play the whistle sound
+    pygame.mixer.Sound.play(goal_sound)
+
+def kick():
+    # Play the whistle sound
+    pygame.mixer.Sound.play(kick_sound)
+
 
 def update():
     global ball_speed, player1_score, player2_score
@@ -138,6 +152,7 @@ def update():
 
         if remaining_time <= 0:
             end_game()
+            play_whistle()
             return
 
     if is_countdown:
@@ -173,12 +188,14 @@ def update():
     # Check collision between players and ball
     if player1.intersects(ball).hit:
         print("Player 1 hit the ball")
+        kick()
         direction = (ball.position - player1.position).normalized()
         ball_speed = direction * ball_max_speed
         print(f"Player 1 hits ball in direction: {direction}, Ball speed: {ball_speed}")
 
     if player2.intersects(ball).hit:
         print("Player 2 hit the ball")
+        kick()
         direction = (ball.position - player2.position).normalized()
         ball_speed = direction * ball_max_speed
         print(f"Player 2 hits ball in direction: {direction}, Ball speed: {ball_speed}")
@@ -190,36 +207,30 @@ def update():
     # Restrict the ball from going below the ground
     if ball.position.y < 0.26:
         ball.position = Vec3(ball.position.x, 0.26, ball.position.z)
-        if not whistle_played['out_of_bounds']:  # Check if whistle has been played for out of bounds
-            play_whistle()
-            whistle_played['out_of_bounds'] = True  # Mark whistle as played for out of bounds
+     
 
     # Check if the ball is in goal1 or goal2
     if ball.intersects(goal1).hit:
         print("Player 2 scores!")
         player2_score += 1
+        say_goal()
         update_scoreboard()
         reset_ball()
-        player1.position = Vec3(-2, 1, 0)
-        player2.position = Vec3(2, 1, 0)
+        player1.position = Vec3(-2, 1, -4)
+        player2.position = Vec3(2, 1, 4)
         ball.color = color.white  # Reset ball color after goal
-        if not whistle_played['goal']:  # Check if whistle has been played for goal
-            play_whistle()
-            whistle_played['goal'] = True  # Mark whistle as played for goal
-        start_countdown()
+        play_whistle()
 
     if ball.intersects(goal2).hit:
         print("Player 1 scores!")
+        say_goal()
         player1_score += 1
         update_scoreboard()
         reset_ball()
-        player1.position = Vec3(-2, 1, 0)
-        player2.position = Vec3(2, 1, 0)
+        player1.position = Vec3(-2, 1, -4)
+        player2.position = Vec3(2, 1, 4)
         ball.color = color.white  # Reset ball color after goal
-        if not whistle_played['goal']:  # Check if whistle has been played for goal
-            play_whistle()
-            whistle_played['goal'] = True  # Mark whistle as played for goal
-        start_countdown()
+        play_whistle()
 
     # Reset ball if it goes out of bounds
     if abs(ball.position.x) > 7.5 or abs(ball.position.z) > 10:
